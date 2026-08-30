@@ -42,6 +42,7 @@ export async function GET() {
       elements: row.elements,
       products: row.products,
       batches: row.batches,
+      expenses: row.expenses,
       updatedAt: row.updatedAt,
     });
   } catch (error) {
@@ -61,9 +62,14 @@ export async function PUT(request: Request) {
     return Response.json({ error: "invalid JSON body" }, { status: 400 });
   }
 
-  if (!Array.isArray(body.elements) || !Array.isArray(body.products) || !Array.isArray(body.batches)) {
+  if (
+    !Array.isArray(body.elements) ||
+    !Array.isArray(body.products) ||
+    !Array.isArray(body.batches) ||
+    !Array.isArray(body.expenses)
+  ) {
     return Response.json(
-      { error: "expected { elements: [], products: [], batches: [] }" },
+      { error: "expected { elements: [], products: [], batches: [], expenses: [] }" },
       { status: 400 },
     );
   }
@@ -71,18 +77,20 @@ export async function PUT(request: Request) {
   try {
     const row = await prisma.ledgerState.upsert({
       where: { id: SINGLETON_ID },
-      update: { elements: body.elements, products: body.products, batches: body.batches },
+      update: { elements: body.elements, products: body.products, batches: body.batches, expenses: body.expenses },
       create: {
         id: SINGLETON_ID,
         elements: body.elements,
         products: body.products,
         batches: body.batches,
+        expenses: body.expenses,
       },
     });
     return Response.json({
       elements: row.elements,
       products: row.products,
       batches: row.batches,
+      expenses: row.expenses,
       updatedAt: row.updatedAt,
     });
   } catch (error) {

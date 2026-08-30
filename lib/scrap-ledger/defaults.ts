@@ -1,4 +1,4 @@
-import type { Batch, Estimate, LedgerData, Product, ScrapElement } from "./types";
+import type { Batch, Estimate, Expense, LedgerData, Product, ScrapElement } from "./types";
 
 const DEFAULT_ELEMENTS: ScrapElement[] = [
   {
@@ -157,6 +157,8 @@ const DEFAULT_PRODUCTS: Product[] = [];
 
 const DEFAULT_BATCHES: Batch[] = [];
 
+const DEFAULT_EXPENSES: Expense[] = [];
+
 const DEFAULT_ESTIMATE: Estimate = {
   sampleWeight: 1,
   saleWeight: 10,
@@ -174,6 +176,7 @@ export function getDefaultLedgerData(): LedgerData {
     elements: structuredClone(DEFAULT_ELEMENTS),
     products: structuredClone(DEFAULT_PRODUCTS),
     batches: structuredClone(DEFAULT_BATCHES),
+    expenses: structuredClone(DEFAULT_EXPENSES),
   };
 }
 

@@ -11,6 +11,7 @@ import {
   materialTotal,
   subtypeOptionsFor,
   syncProductToInventory,
+  todayISODate,
   todayStr,
   uid,
   winLossColor,
@@ -18,6 +19,7 @@ import {
 import type {
   Batch,
   Estimate,
+  Expense,
   LedgerData,
   Product,
   ProductDraft,
@@ -30,6 +32,7 @@ const STORAGE_KEY = "scrapLedgerData";
 const SYNC_DEBOUNCE_MS = 700;
 
 type InvForm = { elementId: string; subtypeId: string; weight: string; buyPrice: string };
+type ExpenseForm = { date: string; description: string; amount: string };
 type SyncStatus = "local-only" | "syncing" | "synced" | "offline";
 
 const emptyInvForm: InvForm = { elementId: "", subtypeId: "", weight: "", buyPrice: "" };
@@ -40,6 +43,7 @@ export function useScrapLedger() {
   const [elements, setElements] = useState<ScrapElement[]>(defaults.elements);
   const [products, setProducts] = useState<Product[]>(defaults.products);
   const [batches, setBatches] = useState<Batch[]>(defaults.batches);
+  const [expenses, setExpenses] = useState<Expense[]>(defaults.expenses);
   const [estimate, setEstimate] = useState<Estimate>(getDefaultEstimate());
 
   const [productScreen, setProductScreen] = useState<ProductScreen>("list");
@@ -49,6 +53,11 @@ export function useScrapLedger() {
 
   const [invAdding, setInvAdding] = useState(false);
   const [invForm, setInvForm] = useState<InvForm>(emptyInvForm);
+
+  const [expenseModalOpen, setExpenseModalOpen] = useState(false);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+  const [expenseForm, setExpenseForm] = useState<ExpenseForm>({ date: "", description: "", amount: "" });
+  const [confirmDeleteExpenseId, setConfirmDeleteExpenseId] = useState<string | null>(null);
 
   const [confirmDeleteElementId, setConfirmDeleteElementId] = useState<string | null>(null);
   const [newElementName, setNewElementName] = useState("");
@@ -88,6 +97,7 @@ export function useScrapLedger() {
           if (data.elements) setElements(data.elements);
           if (data.products) setProducts(data.products);
           if (data.batches) setBatches(data.batches);
+          if (data.expenses) setExpenses(data.expenses);
           versionRef.current = data.updatedAt;
         }
       } catch {
@@ -102,6 +112,7 @@ export function useScrapLedger() {
           setElements(data.elements);
           setProducts(data.products);
           setBatches(data.batches);
+          setExpenses(data.expenses);
           versionRef.current = data.updatedAt;
         }
         setSyncStatus("synced");
@@ -124,7 +135,7 @@ export function useScrapLedger() {
   // stays accurate.
   useEffect(() => {
     if (!hydrated) return;
-    const data: LedgerData = { elements, products, batches };
+    const data: LedgerData = { elements, products, batches, expenses };
     const stamp = (updatedAt: string | undefined) => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, updatedAt }));
@@ -161,7 +172,7 @@ export function useScrapLedger() {
     return () => {
       if (syncTimer.current) clearTimeout(syncTimer.current);
     };
-  }, [elements, products, batches, hydrated]);
+  }, [elements, products, batches, expenses, hydrated]);
 
   // ── Navigation ────────────────────────────────────────────────────────
   const goTab = useCallback((next: Tab) => setTab(next), []);
@@ -308,6 +319,51 @@ export function useScrapLedger() {
     setInvAdding(false);
   }, [invForm]);
 
+  // ── Expenses ─────────────────────────────────────────────────────────
+  const openAddExpense = useCallback(() => {
+    setEditingExpenseId(null);
+    setExpenseForm({ date: todayISODate(), description: "", amount: "" });
+    setExpenseModalOpen(true);
+  }, []);
+
+  const openEditExpense = useCallback(
+    (id: string) => {
+      const e = expenses.find((x) => x.id === id);
+      if (!e) return;
+      setEditingExpenseId(id);
+      setExpenseForm({ date: e.date, description: e.description, amount: String(e.amount) });
+      setExpenseModalOpen(true);
+    },
+    [expenses],
+  );
+
+  const closeExpenseModal = useCallback(() => setExpenseModalOpen(false), []);
+
+  const updateExpenseForm = useCallback((field: keyof ExpenseForm, value: string) => {
+    setExpenseForm((f) => ({ ...f, [field]: value }));
+  }, []);
+
+  const saveExpense = useCallback(() => {
+    if (!expenseForm.date || !expenseForm.description) return;
+    const saved: Expense = {
+      id: editingExpenseId ?? uid("x"),
+      date: expenseForm.date,
+      description: expenseForm.description,
+      amount: Number(expenseForm.amount) || 0,
+    };
+    setExpenses((current) =>
+      editingExpenseId ? current.map((e) => (e.id === editingExpenseId ? saved : e)) : [...current, saved],
+    );
+    setExpenseModalOpen(false);
+  }, [expenseForm, editingExpenseId]);
+
+  const requestDeleteExpense = useCallback((id: string) => setConfirmDeleteExpenseId(id), []);
+  const cancelDeleteExpense = useCallback(() => setConfirmDeleteExpenseId(null), []);
+  const confirmDeleteExpenseFn = useCallback(() => {
+    setExpenses((current) => current.filter((e) => e.id !== confirmDeleteExpenseId));
+    setConfirmDeleteExpenseId(null);
+  }, [confirmDeleteExpenseId]);
+
   // ── Elements ─────────────────────────────────────────────────────────
   const addElement = useCallback(() => {
     const name = newElementName.trim();
@@ -436,6 +492,7 @@ export function useScrapLedger() {
   const isInventoryTab = tab === "inventory";
   const isElementsTab = tab === "elements";
   const isEstimateTab = tab === "estimate";
+  const isExpensesTab = tab === "expenses";
 
   const productRows = products.map((p) => ({
     id: p.id,
@@ -545,6 +602,17 @@ export function useScrapLedger() {
 
   const invSubtypeOptions = subtypeOptionsFor(elements, invForm.elementId);
 
+  const expenseRows = [...expenses]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .map((e) => ({
+      id: e.id,
+      date: e.date,
+      description: e.description,
+      amountFmt: fmtCurrency(e.amount),
+      onEdit: () => openEditExpense(e.id),
+      onDelete: () => requestDeleteExpense(e.id),
+    }));
+
   const elementsRows = elements.map((e) => ({
     id: e.id,
     name: e.name,
@@ -629,6 +697,9 @@ export function useScrapLedger() {
   const deleteElementLabel = confirmDeleteElementId
     ? elements.find((e) => e.id === confirmDeleteElementId)?.name ?? ""
     : "";
+  const deleteExpenseLabel = confirmDeleteExpenseId
+    ? expenses.find((e) => e.id === confirmDeleteExpenseId)?.description ?? ""
+    : "";
 
   let headerTitle = "Products";
   let headerSubtitle = "";
@@ -647,12 +718,16 @@ export function useScrapLedger() {
   } else if (tab === "estimate") {
     headerTitle = "Estimate";
     headerSubtitle = "Project value from a sample";
+  } else if (tab === "expenses") {
+    headerTitle = "Expenses";
+    headerSubtitle = "Logged costs";
   }
 
   const showBottomNav = !(tab === "products" && (productScreen === "view" || productScreen === "edit"));
   const showBack = tab === "products" && productScreen !== "list";
-  const showHeaderAction = (tab === "products" && productScreen === "list") || tab === "inventory";
-  const headerActionLabel = tab === "products" ? "+ Add" : "+ Add Batch";
+  const showHeaderAction =
+    (tab === "products" && productScreen === "list") || tab === "inventory" || tab === "expenses";
+  const headerActionLabel = tab === "inventory" ? "+ Add Batch" : "+ Add";
 
   return {
     syncStatus,
@@ -664,7 +739,8 @@ export function useScrapLedger() {
     onBack: () => (productScreen === "edit" ? cancelEdit() : backToList()),
     showHeaderAction,
     headerActionLabel,
-    headerActionFn: tab === "products" ? startAddProduct : openAddInventory,
+    headerActionFn:
+      tab === "products" ? startAddProduct : tab === "expenses" ? openAddExpense : openAddInventory,
 
     isProductsList,
     hasProducts: products.length > 0,
@@ -713,6 +789,7 @@ export function useScrapLedger() {
     onGoInventory: () => goTab("inventory"),
     onGoElements: () => goTab("elements"),
     onGoEstimate: () => goTab("estimate"),
+    onGoExpenses: () => goTab("expenses"),
 
     isEstimateTab,
     estimate,
@@ -751,6 +828,25 @@ export function useScrapLedger() {
     showTrendModal: !!trendData,
     trend: trendData,
     onCloseTrend: closeTrend,
+
+    isExpensesTab,
+    hasExpenses: expenseRows.length > 0,
+    noExpenses: expenseRows.length === 0,
+    expenseRows,
+    expenseModalOpen,
+    expenseForm,
+    isEditingExpense: !!editingExpenseId,
+    onExpenseDateChange: (e: React.ChangeEvent<HTMLInputElement>) => updateExpenseForm("date", e.target.value),
+    onExpenseDescriptionChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+      updateExpenseForm("description", e.target.value),
+    onExpenseAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => updateExpenseForm("amount", e.target.value),
+    onCloseExpenseModal: closeExpenseModal,
+    onSaveExpense: saveExpense,
+
+    showDeleteExpenseModal: !!confirmDeleteExpenseId,
+    deleteExpenseLabel,
+    onCancelDeleteExpense: cancelDeleteExpense,
+    onConfirmDeleteExpense: confirmDeleteExpenseFn,
   };
 }
 

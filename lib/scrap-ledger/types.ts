@@ -61,11 +61,19 @@ export type Estimate = {
   rows: EstimateRow[];
 };
 
-export type Tab = "products" | "inventory" | "elements" | "estimate";
+export type Expense = {
+  id: string;
+  date: string;
+  description: string;
+  amount: number | string;
+};
+
+export type Tab = "products" | "inventory" | "elements" | "estimate" | "expenses";
 export type ProductScreen = "list" | "view" | "edit";
 
 export type LedgerData = {
   elements: ScrapElement[];
   products: Product[];
   batches: Batch[];
+  expenses: Expense[];
 };

@@ -5,7 +5,7 @@ import type { ScrapLedgerViewModel } from "@/lib/scrap-ledger/useScrapLedger";
 
 type Props = Pick<
   ScrapLedgerViewModel,
-  "tab" | "onGoProducts" | "onGoInventory" | "onGoElements" | "onGoEstimate"
+  "tab" | "onGoProducts" | "onGoInventory" | "onGoElements" | "onGoEstimate" | "onGoExpenses"
 >;
 
 const items: { key: Props["tab"]; label: string; glyph: string; onClick: keyof Props }[] = [
@@ -13,6 +13,7 @@ const items: { key: Props["tab"]; label: string; glyph: string; onClick: keyof P
   { key: "inventory", label: "Inventory", glyph: "◆", onClick: "onGoInventory" },
   { key: "elements", label: "Elements", glyph: "●", onClick: "onGoElements" },
   { key: "estimate", label: "Estimate", glyph: "▲", onClick: "onGoEstimate" },
+  { key: "expenses", label: "Expenses", glyph: "$", onClick: "onGoExpenses" },
 ];
 
 export function BottomNav(props: Props) {

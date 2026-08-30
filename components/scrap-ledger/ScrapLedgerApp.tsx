@@ -9,8 +9,10 @@ import { ProductsTab } from "./ProductsTab";
 import { InventoryTab } from "./InventoryTab";
 import { ElementsTab } from "./ElementsTab";
 import { EstimateTab } from "./EstimateTab";
+import { ExpensesTab } from "./ExpensesTab";
 import { TrendModal } from "./modals/TrendModal";
 import { AddInventoryModal } from "./modals/AddInventoryModal";
+import { ExpenseModal } from "./modals/ExpenseModal";
 import { ConfirmModal } from "./modals/ConfirmModal";
 
 export function ScrapLedgerApp() {
@@ -49,6 +51,7 @@ export function ScrapLedgerApp() {
               {vm.isInventoryTab && <InventoryTab {...vm} />}
               {vm.isElementsTab && <ElementsTab {...vm} />}
               {vm.isEstimateTab && <EstimateTab {...vm} />}
+              {vm.isExpensesTab && <ExpensesTab {...vm} />}
             </div>
           </div>
 
@@ -61,6 +64,7 @@ export function ScrapLedgerApp() {
 
         {vm.showTrendModal && <TrendModal trend={vm.trend} onCloseTrend={vm.onCloseTrend} />}
         {vm.invAdding && <AddInventoryModal {...vm} />}
+        {vm.expenseModalOpen && <ExpenseModal {...vm} />}
         {vm.showDeleteProductModal && (
           <ConfirmModal
             title="Delete Product?"
@@ -75,6 +79,14 @@ export function ScrapLedgerApp() {
             message={`"${vm.deleteElementLabel}" and its subtypes will be removed. Products referencing it will show as unmatched.`}
             onCancel={vm.onCancelDeleteElement}
             onConfirm={vm.onConfirmDeleteElement}
+          />
+        )}
+        {vm.showDeleteExpenseModal && (
+          <ConfirmModal
+            title="Delete Expense?"
+            message={`"${vm.deleteExpenseLabel}" will be permanently removed.`}
+            onCancel={vm.onCancelDeleteExpense}
+            onConfirm={vm.onConfirmDeleteExpense}
           />
         )}
       </div>

@@ -15,6 +15,7 @@ model LedgerState {
   elements  Json
   products  Json
   batches   Json
+  expenses  Json   @default("[]")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

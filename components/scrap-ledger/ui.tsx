@@ -43,6 +43,10 @@ export function NumberInput(props: React.InputHTMLAttributes<HTMLInputElement>) 
   return <input type="number" {...props} style={{ ...inputBase, ...props.style }} />;
 }
 
+export function DateInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return <input type="date" {...props} style={{ ...inputBase, ...props.style }} />;
+}
+
 export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return <textarea {...props} style={{ ...inputBase, resize: "vertical", ...props.style }} />;
 }

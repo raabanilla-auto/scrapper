@@ -35,6 +35,12 @@ export function todayStr(): string {
   });
 }
 
+// YYYY-MM-DD in Philippine time, for pre-filling <input type="date">
+// regardless of the browser's local timezone.
+export function todayISODate(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+}
+
 export function findElement(elements: ScrapElement[], id: string): ScrapElement | undefined {
   return elements.find((e) => e.id === id);
 }
