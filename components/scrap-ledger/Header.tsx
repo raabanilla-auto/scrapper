@@ -3,6 +3,7 @@
 import { colors, fonts } from "./theme";
 import type { ScrapLedgerViewModel } from "@/lib/scrap-ledger/useScrapLedger";
 import { SyncBadge } from "./SyncBadge";
+import { logout } from "@/app/actions/auth";
 
 type Props = Pick<
   ScrapLedgerViewModel,
@@ -46,6 +47,20 @@ export function Header({
           SCRAP LEDGER
         </div>
         <SyncBadge syncStatus={syncStatus} isOnline={isOnline} />
+        <button
+          onClick={() => logout()}
+          style={{
+            marginLeft: "auto",
+            background: "transparent",
+            border: "none",
+            color: colors.textFaint,
+            fontSize: 11,
+            letterSpacing: "0.04em",
+            cursor: "pointer",
+          }}
+        >
+          Sign out
+        </button>
       </div>
 
       <div

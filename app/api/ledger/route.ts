@@ -1,10 +1,18 @@
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { getDefaultLedgerData } from "@/lib/scrap-ledger/defaults";
+import { isValidSession, SESSION_COOKIE_NAME } from "@/lib/session";
 import type { LedgerData } from "@/lib/scrap-ledger/types";
 
 export const dynamic = "force-dynamic";
 
 const SINGLETON_ID = "singleton";
+
+// Defense in depth alongside proxy.ts — see its comment for why both check.
+async function requireSession() {
+  const cookie = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
+  return isValidSession(cookie);
+}
 
 // The DB is an optional enhancement layer on top of localStorage (see
 // useScrapLedger's sync effect) — when DATABASE_URL isn't configured yet,
@@ -20,6 +28,10 @@ function unavailable(error: unknown) {
 }
 
 export async function GET() {
+  if (!(await requireSession())) {
+    return Response.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   try {
     const row = await prisma.ledgerState.upsert({
       where: { id: SINGLETON_ID },
@@ -38,6 +50,10 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  if (!(await requireSession())) {
+    return Response.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   let body: Partial<LedgerData>;
   try {
     body = await request.json();

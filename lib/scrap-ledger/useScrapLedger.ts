@@ -60,10 +60,16 @@ export function useScrapLedger() {
 
   const [hydrated, setHydrated] = useState(false);
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The server's updatedAt this device last confirmed matches what it has.
+  // Compared against a fresh GET on load to decide who wins — see below.
+  const versionRef = useRef<string | undefined>(undefined);
 
   // ── Hydration: localStorage first (instant, offline-safe), then try the
-  // server as an enhancement. Server data wins when reachable so multiple
-  // devices converge; localStorage remains the fallback of record.
+  // server as an enhancement. Server data only wins if it's strictly newer
+  // than the version this device last synced — otherwise this device's
+  // local copy (which may hold edits that never made it to the server, e.g.
+  // the tab closed before the debounced PUT fired) is the one still in
+  // play, and the persistence effect below pushes it back up.
   useEffect(() => {
     const goOnline = () => setIsOnline(true);
     const goOffline = () => {
@@ -78,10 +84,11 @@ export function useScrapLedger() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
-          const data = JSON.parse(raw) as Partial<LedgerData>;
+          const data = JSON.parse(raw) as Partial<LedgerData> & { updatedAt?: string };
           if (data.elements) setElements(data.elements);
           if (data.products) setProducts(data.products);
           if (data.batches) setBatches(data.batches);
+          versionRef.current = data.updatedAt;
         }
       } catch {
         // corrupt localStorage payload — keep in-memory defaults
@@ -90,10 +97,13 @@ export function useScrapLedger() {
       try {
         const res = await fetch("/api/ledger");
         if (!res.ok) throw new Error(String(res.status));
-        const data = (await res.json()) as LedgerData;
-        setElements(data.elements);
-        setProducts(data.products);
-        setBatches(data.batches);
+        const data = (await res.json()) as LedgerData & { updatedAt: string };
+        if (!versionRef.current || new Date(data.updatedAt) > new Date(versionRef.current)) {
+          setElements(data.elements);
+          setProducts(data.products);
+          setBatches(data.batches);
+          versionRef.current = data.updatedAt;
+        }
         setSyncStatus("synced");
       } catch {
         setSyncStatus((s) => (s === "offline" ? s : "local-only"));
@@ -109,15 +119,20 @@ export function useScrapLedger() {
   }, []);
 
   // ── Persistence: every data change is written to localStorage immediately
-  // and pushed to the server (debounced, best-effort).
+  // and pushed to the server (debounced, best-effort). A successful push
+  // records the server's new updatedAt so the next load's version check
+  // stays accurate.
   useEffect(() => {
     if (!hydrated) return;
     const data: LedgerData = { elements, products, batches };
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch {
-      // storage full / unavailable — server sync (if any) still applies
-    }
+    const stamp = (updatedAt: string | undefined) => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, updatedAt }));
+      } catch {
+        // storage full / unavailable — server sync (if any) still applies
+      }
+    };
+    stamp(versionRef.current);
 
     if (syncTimer.current) clearTimeout(syncTimer.current);
     syncTimer.current = setTimeout(() => {
@@ -127,10 +142,19 @@ export function useScrapLedger() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
-        // A reachable-but-erroring server (e.g. 503 when DATABASE_URL isn't
-        // configured yet) is "local-only", not "offline" — the network is
-        // fine, there's just nowhere to sync to yet.
-        .then((res) => setSyncStatus(res.ok ? "synced" : "local-only"))
+        .then(async (res) => {
+          // A reachable-but-erroring server (e.g. 503 when DATABASE_URL isn't
+          // configured yet) is "local-only", not "offline" — the network is
+          // fine, there's just nowhere to sync to yet.
+          if (!res.ok) {
+            setSyncStatus("local-only");
+            return;
+          }
+          const row = (await res.json()) as { updatedAt: string };
+          versionRef.current = row.updatedAt;
+          stamp(row.updatedAt);
+          setSyncStatus("synced");
+        })
         .catch(() => setSyncStatus("offline"));
     }, SYNC_DEBOUNCE_MS);
 
