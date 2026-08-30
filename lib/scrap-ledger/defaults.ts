@@ -150,62 +150,12 @@ const DEFAULT_ELEMENTS: ScrapElement[] = [
   },
 ];
 
-const DEFAULT_PRODUCTS: Product[] = [
-  {
-    id: "p1",
-    serialId: "MTR-2026-0091",
-    model: "Siemens 3-Phase Motor",
-    description: "Industrial 3-phase electric motor, housing removed",
-    uom: "kg",
-    totalWeight: 42,
-    buyingPrice: 3200,
-    totalExpenses: 300,
-    attributes: [
-      { key: "a1", elementId: "el-copper", subtypeId: "st-2", weight: 8 },
-      { key: "a2", elementId: "el-aluminum", subtypeId: "st-3", weight: 3 },
-      { key: "a3", elementId: "el-stainless", subtypeId: "st-8", weight: 12 },
-      { key: "a4", elementId: "el-metal", subtypeId: "st-7", weight: 19 },
-    ],
-  },
-  {
-    id: "p2",
-    serialId: "CBL-2026-0034",
-    model: "",
-    description: "Mixed copper cable bundle",
-    uom: "kg",
-    totalWeight: 15,
-    buyingPrice: 4500,
-    totalExpenses: 150,
-    attributes: [
-      { key: "a5", elementId: "el-copper", subtypeId: "st-1", weight: 9 },
-      { key: "a6", elementId: "el-plastic", subtypeId: "st-10", weight: 6 },
-    ],
-  },
-  {
-    id: "p3",
-    serialId: "APP-2026-0112",
-    model: "Old laptop assorted",
-    description: "Non-working laptop, scrap for metals and plastics",
-    uom: "kg",
-    totalWeight: 2.2,
-    buyingPrice: 350,
-    totalExpenses: 50,
-    attributes: [
-      { key: "a7", elementId: "el-aluminum", subtypeId: "st-3", weight: 0.6 },
-      { key: "a8", elementId: "el-gold", subtypeId: "st-6", weight: 0.02 },
-      { key: "a9", elementId: "el-plastic", subtypeId: "st-11", weight: 0.9 },
-      { key: "a10", elementId: "el-stainless", subtypeId: "st-8", weight: 0.3 },
-    ],
-  },
-];
+// Products and inventory start empty — real data is entered by the user.
+// Element pricing above stays seeded since that's reference data, not demo
+// records.
+const DEFAULT_PRODUCTS: Product[] = [];
 
-const DEFAULT_BATCHES: Batch[] = [
-  { id: "b1", elementId: "el-copper", subtypeId: "st-2", weight: 40, buyPrice: 15000 },
-  { id: "b2", elementId: "el-aluminum", subtypeId: "st-3", weight: 25, buyPrice: 2000 },
-  { id: "b3", elementId: "el-stainless", subtypeId: "st-8", weight: 15, buyPrice: 800 },
-  { id: "b4", elementId: "el-gold", subtypeId: "st-6", weight: 0.05, buyPrice: 90000 },
-  { id: "b5", elementId: "el-plastic", subtypeId: "st-10", weight: 50, buyPrice: 1200 },
-];
+const DEFAULT_BATCHES: Batch[] = [];
 
 const DEFAULT_ESTIMATE: Estimate = {
   sampleWeight: 1,
