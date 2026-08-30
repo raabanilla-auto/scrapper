@@ -19,7 +19,7 @@ export function ElementsTab(vm: ScrapLedgerViewModel) {
         </Button>
       </div>
 
-      <div style={{ display: "grid", gap: 14 }}>
+      <div className="grid gap-3.5 md:grid-cols-2">
         {vm.elementsRows.map((el) => (
           <div key={el.id} style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 14, padding: 14 }}>
             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>

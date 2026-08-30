@@ -45,7 +45,7 @@ export function InventoryTab(vm: ScrapLedgerViewModel) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gap: 10 }}>
+      <div className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-3">
         {vm.inventoryRows.map((row, i) => (
           <div key={i} style={{ background: colors.surface, border: `1px solid ${colors.border}`, borderRadius: 12, padding: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 10 }}>

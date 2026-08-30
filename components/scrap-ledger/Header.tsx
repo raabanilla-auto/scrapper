@@ -31,28 +31,29 @@ export function Header({
   return (
     <>
       <div
+        className="justify-center px-5 lg:justify-end lg:px-12"
         style={{
-          padding: "10px 20px",
+          paddingTop: 10,
+          paddingBottom: 10,
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
           gap: 10,
           textAlign: "center",
           borderBottom: `1px solid ${colors.borderHeader}`,
         }}
       >
-        <div style={{ fontSize: 11, letterSpacing: "0.16em", color: colors.accent, fontWeight: 700 }}>
+        <div className="lg:hidden" style={{ fontSize: 11, letterSpacing: "0.16em", color: colors.accent, fontWeight: 700 }}>
           SCRAP LEDGER
         </div>
         <SyncBadge syncStatus={syncStatus} isOnline={isOnline} />
       </div>
 
       <div
+        className="px-5 py-4 md:px-9 lg:px-12 lg:py-5"
         style={{
           display: "flex",
           alignItems: "center",
           gap: 12,
-          padding: "16px 20px",
           borderBottom: `1px solid ${colors.borderHeader}`,
         }}
       >

@@ -32,7 +32,7 @@ export function EstimateTab(vm: ScrapLedgerViewModel) {
           + Add Row
         </Button>
       </div>
-      <div style={{ display: "grid", gap: 10, marginBottom: 18 }}>
+      <div className="grid gap-2.5 md:grid-cols-2" style={{ marginBottom: 18 }}>
         {vm.estimateRows.map((row) => (
           <div
             key={row.key}
@@ -63,7 +63,7 @@ export function EstimateTab(vm: ScrapLedgerViewModel) {
       </div>
 
       <SectionLabel>Projected at Sale Weight</SectionLabel>
-      <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
+      <div className="grid gap-2 md:grid-cols-2" style={{ marginBottom: 14 }}>
         {vm.estProjectedRows.map((row, i) => (
           <div
             key={i}

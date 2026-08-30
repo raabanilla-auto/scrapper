@@ -22,7 +22,7 @@ function ProductsList({ vm }: { vm: Props }) {
     );
   }
   return (
-    <div style={{ display: "grid", gap: 10 }}>
+    <div className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-3">
       {vm.productRows.map((row) => (
         <div
           key={row.id}
@@ -83,7 +83,7 @@ function ProductView({ vm }: { vm: Props }) {
       </Card>
 
       <SectionLabel>Attributes</SectionLabel>
-      <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
+      <div className="grid gap-2 md:grid-cols-2" style={{ marginBottom: 14 }}>
         {vm.viewAttrRows.map((row, i) => (
           <div
             key={i}
@@ -138,16 +138,18 @@ function ProductEdit({ vm }: { vm: Props }) {
   if (!draft) return null;
   return (
     <>
-      <div style={{ display: "grid", gap: 14, marginBottom: 20 }}>
+      <div className="grid gap-3.5 md:grid-cols-2" style={{ marginBottom: 20 }}>
         <Field label="Serial ID *">
           <TextInput value={draft.serialId} onChange={vm.onSerialIdChange} placeholder="e.g. MTR-2026-0091" />
         </Field>
         <Field label="Model">
           <TextInput value={draft.model} onChange={vm.onModelChange} placeholder="Optional" />
         </Field>
-        <Field label="Description">
-          <TextArea value={draft.description} onChange={vm.onDescriptionChange} rows={3} />
-        </Field>
+        <div className="md:col-span-2">
+          <Field label="Description">
+            <TextArea value={draft.description} onChange={vm.onDescriptionChange} rows={3} />
+          </Field>
+        </div>
         <div style={{ display: "flex", gap: 12 }}>
           <div style={{ flex: 1 }}>
             <Field label="UOM">
@@ -175,7 +177,7 @@ function ProductEdit({ vm }: { vm: Props }) {
         </Button>
       </div>
 
-      <div style={{ display: "grid", gap: 10, marginBottom: 18 }}>
+      <div className="grid gap-2.5 md:grid-cols-2" style={{ marginBottom: 18 }}>
         {vm.draftAttrRows.map((row) => (
           <div
             key={row.key}
