@@ -1,0 +1,20 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Single-user ledger, stored as one row. The JSON columns mirror the shape
+// kept in localStorage on the client so the two stores can be swapped for
+// each other without a translation layer.
+model LedgerState {
+  id        String   @id @default("singleton")
+  elements  Json
+  products  Json
+  batches   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
